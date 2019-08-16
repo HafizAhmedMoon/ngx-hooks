@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="Prettier Scope" pattern="(file:*.js||file:*.jsx||file:*.ts||file:*.tsx||file:*.css||file:*.scss||file:*.html||file:*.json||file:*.yml||file:*.yaml||file:*.md||file:.prettierrc*)&amp;&amp;!file:www/*.*" />
+</component>
