@@ -56,7 +56,7 @@ type NgHooksPropsProtected = '__context';
 
 const propsProtected: NgHooksPropsProtected[] & string[] = ['__context'];
 
-export type NgHooksProps<C, P = Omit<C, NgHooksPropsProtected>> = {
+export type NgHooksProps<C extends NgHooks<any>, P = Omit<C, NgHooksPropsProtected>> = {
   [K in keyof P]: P[K];
 };
 
