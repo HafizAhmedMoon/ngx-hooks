@@ -2,17 +2,21 @@ language: node_js
 node_js:
   - '10'
 script:
-  - echo $TRAVIS_TAG
   - yarn test
   - yarn build
+before_deploy:
+  - TAG=$(git describe --match [0-9].[0-9].[0-9]* --abbrev=7 --tags HEAD | sed -e 's/-\([0-9]*\)-g/+\1.sha-/g')
+  - echo $TAG
+  - ls -la
+  - sed -i '' -e 's/0.0.0-PLACEHOLDER/'"$TAG"'/g' package.json
+  - echo "Publishing to npm, version $TAG"
 deploy:
   provider: npm
   email: '$NPM_EMAIL'
-  api_key: '$NPM_TOKEN'
+  api_key: '$NPM_TOKEN_FAKE'
   skip_cleanup: true
   on:
     tags: true
-    branch: master
 notifications:
   email: true
   webhooks:

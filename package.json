@@ -1,6 +1,6 @@
 {
   "name": "ngx-hooks",
-  "version": "0.0.1",
+  "version": "0.0.0-PLACEHOLDER",
   "description": "Function api for Angular",
   "main": "dist/index.common.js",
   "module": "dist/index.esm.js",
