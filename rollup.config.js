@@ -15,7 +15,11 @@ export default {
       sourcemap: true,
     },
   ],
-  external: [...Object.keys(pkgConfig.dependencies || {}), ...Object.keys(pkgConfig.peerDependencies || {})],
+  external: [
+    ...Object.keys(pkgConfig.dependencies || {}),
+    ...Object.keys(pkgConfig.peerDependencies || {}),
+    'rxjs/operators',
+  ],
   plugins: [
     typescript({
       useTsconfigDeclarationDir: true,
