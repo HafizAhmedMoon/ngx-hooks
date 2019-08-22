@@ -12,7 +12,6 @@ export class AppComponent extends FunctionComponent<AppComponent> {
     const platformRef = inject(PlatformRef);
     console.log({ platformRef });
 
-    const count = ref(0);
     const title = ref('Angular');
     title.value = 'NgxHooks';
 
@@ -21,7 +20,6 @@ export class AppComponent extends FunctionComponent<AppComponent> {
 
     function updateInputA() {
       console.log('updateInputA');
-      count.value++;
       inputA.value = Math.floor(Math.random() * 100);
     }
     function updateInputBoth() {
