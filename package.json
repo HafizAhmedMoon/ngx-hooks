@@ -31,7 +31,10 @@
     "url": "https://github.com/hafizahmedmoon/ngx-hooks/issues"
   },
   "homepage": "https://github.com/hafizahmedmoon/ngx-hooks#readme",
-  "dependencies": {},
+  "dependencies": {
+    "@angular/core": "^8.2.2",
+    "rxjs": "^6.5.2"
+  },
   "devDependencies": {
     "prettier": "^1.18.2",
     "rimraf": "^3.0.0",
@@ -41,5 +44,8 @@
     "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.5.3"
   },
-  "peerDependencies": {}
+  "peerDependencies": {
+    "@angular/core": ">=5.0.0",
+    "rxjs": ">=6.0.0"
+  }
 }
