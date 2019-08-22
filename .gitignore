@@ -30,6 +30,7 @@
 /coverage
 npm-debug.log
 yarn-error.log
+*.bak
 
 # System Files
 .DS_Store
