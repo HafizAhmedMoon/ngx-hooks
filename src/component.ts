@@ -68,7 +68,7 @@ export interface NgHooks<T> {
   [key: string]: any;
 }
 
-export class FunctionComponent<T> implements NgHooks<T> {
+export abstract class FunctionComponent<T> implements NgHooks<T> {
   [key: string]: any;
 }
 
@@ -100,10 +100,11 @@ export function NgHooks<T>() {
     @Component({
       template: '',
     })
-    class HookHelperComponent implements Lifecycle {
+    class HookHelperComponent extends target implements Lifecycle {
       __context: ComponentContext;
 
       constructor(injector: Injector) {
+        super();
         const context = (this.__context = createContext(injector));
 
         withContext(context, () => setup.call(this, target));
@@ -153,14 +154,10 @@ export function NgHooks<T>() {
   };
 }
 
-function setup(this: NgHooks<any>, target: NgHooksStatic<any>) {
-  const instance = new target();
-
-  setDefaultProps.call(this, instance);
-
+function setup(this: NgHooks<any>) {
   const props = proxyProps.call(this);
 
-  const result = target.ngHooks.call(undefined, props);
+  const result = (this.constructor as NgHooksStatic<any>).ngHooks.call(undefined, props);
 
   copyResultToContext.call(this, result);
 
@@ -199,6 +196,8 @@ function proxyProps(this: NgHooks<any>) {
 
 function copyResultToContext(this: NgHooks<any>, result: Object) {
   Object.keys(result).forEach((objKey) => {
+    if (propsProtected.includes(objKey)) return;
+
     const resultElement = result[objKey];
     if (isRef(resultElement)) {
       bindRefToContext(this, objKey, resultElement);
