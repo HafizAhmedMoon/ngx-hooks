@@ -3,8 +3,8 @@
   "version": "0.0.0-PLACEHOLDER",
   "description": "Function api for Angular",
   "main": "dist/index.common.js",
-  "module": "dist/index.esm.js",
-  "typings": "dist/types/index.d.ts",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],

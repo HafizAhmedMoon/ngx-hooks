@@ -22,7 +22,6 @@ export default {
   ],
   plugins: [
     typescript({
-      useTsconfigDeclarationDir: true,
       tsconfig: 'tsconfig.prod.json',
       typescript: require('typescript'),
     }),
