@@ -18,6 +18,8 @@ const propsProtected: NgHooksPropsProtected[] & string[] = ['__context'];
 export type NgHooksContext<C extends NgHooks, P = Omit<C, NgHooksPropsProtected>> = {
   [K in keyof P]: P[K];
 };
+export type NgHooksFunction<T, R = any> = (props: NgHooksContext<T>) => NgHooksFunctionReturn<R>;
+export type NgHooksFunctionReturn<R = any> = R & { [key: string]: any };
 
 interface Type<T> {
   new (...args: any[]): T;
@@ -32,7 +34,7 @@ export abstract class FunctionComponent implements NgHooks {
 }
 
 interface NgHooksStatic<T> extends Type<FunctionComponent> {
-  ngHooks(props: NgHooksContext<T>): { [key: string]: any };
+  ngHooks: NgHooksFunction<T>;
 }
 
 const ANNOTATIONS = '__annotations__';

@@ -1,4 +1,4 @@
-export { FunctionComponent, NgHooks, NgHooksContext } from './component';
+export { FunctionComponent, NgHooks, NgHooksContext, NgHooksFunction, NgHooksFunctionReturn } from './component';
 export * from './inject';
 export {
   onChanges,
