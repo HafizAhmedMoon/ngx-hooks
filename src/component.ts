@@ -124,6 +124,8 @@ function setup(this: NgHooks) {
 }
 
 function copyResultToContext(this: NgHooks, result: Object) {
+  if (result == null) return;
+
   Object.getOwnPropertyNames(result).forEach((objKey) => {
     if (propsProtected.includes(objKey)) return;
 
