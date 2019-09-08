@@ -4,7 +4,7 @@ import { onAfterContentChecked, onAfterViewChecked, onDestroy } from './lifecycl
 import { computed, InternalRef, Ref, scheduleRefsUpdates } from './state';
 
 export interface ComponentWatchContext extends Context {
-  watchAsyncQues?: {
+  watchAsyncQueue?: {
     content: (() => void)[];
     view: (() => void)[];
   };
@@ -77,18 +77,18 @@ export function watch<T>(
 
   const context = getContext<ComponentWatchContext>();
 
-  if (!context.watchAsyncQues) {
-    context.watchAsyncQues = {
+  if (!context.watchAsyncQueue) {
+    context.watchAsyncQueue = {
       content: [],
       view: [],
     };
 
     onAfterContentChecked(() => {
-      flushQue(context.watchAsyncQues.content);
+      flushQue(context.watchAsyncQueue.content);
     });
 
     onAfterViewChecked(() => {
-      flushQue(context.watchAsyncQues.view);
+      flushQue(context.watchAsyncQueue.view);
     });
   }
 
@@ -191,14 +191,12 @@ function scheduleWatch(
 }
 
 function queJob(context, cb: () => void, mode: FlushMode) {
-  context.watchAsyncQues[mode].push(cb);
+  context.watchAsyncQueue[mode].push(cb);
 }
 
 function flushQue(que: (() => void)[]) {
-  const q = [...que];
-  que.length = 0;
-  while (q.length) {
-    const cb = q.shift();
+  while (que.length) {
+    const cb = que.shift();
     scheduleRefsUpdates(cb);
   }
 }
