@@ -70,7 +70,7 @@ export function watch<T>(
   const { lazy, mode }: WatcherOption = {
     ...{
       lazy: false,
-      mode: 'sync',
+      mode: 'content',
     },
     ...options,
   };
