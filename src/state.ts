@@ -1,5 +1,10 @@
-export interface Ref<T> {
-  value: T;
+import { Subject } from 'rxjs';
+import { createInternalRefsStream, getPropertyDescriptor } from './helpers';
+import { onDestroy } from './lifecycle';
+
+export interface InternalRef<T = any> extends Ref<T> {
+  __value: T;
+  __updates: Subject<void>;
 }
 
 export interface GetterSetter<T> {
@@ -8,20 +13,125 @@ export interface GetterSetter<T> {
 }
 
 type Getter<T> = GetterSetter<T>['get'];
+type Setter<T> = GetterSetter<T>['set'];
 
-export function computed<T>(getter: Getter<T>): Ref<T>;
+export function computed<T>(getter: Getter<T>, setter?: Setter<T>): Ref<T>;
 export function computed<T>(options: GetterSetter<T>): Ref<T>;
-export function computed<T>(obj: Getter<T> | GetterSetter<T>): Ref<T> {
-  if (typeof obj === 'function') {
-    obj = { get: obj };
+export function computed<T>(fnOrObj: Getter<T> | GetterSetter<T>, setter?: Setter<T>): Ref<T> {
+  let _getter,
+    _setter,
+    internalRefs: InternalRef[] = [];
+  if (typeof fnOrObj === 'function') {
+    _getter = fnOrObj;
+    _setter = setter;
+  } else {
+    _getter = fnOrObj.get;
+    _setter = fnOrObj.set;
   }
-  return Object.create(Object.create(null), {
+
+  let hasUpdate = false;
+  let val = collectRefs(internalRefs, _getter);
+
+  const subscription = createInternalRefsStream(internalRefs).subscribe(() => {
+    hasUpdate = true;
+    ref.__updates.next();
+  });
+  onDestroy(() => subscription.unsubscribe());
+
+  const valueGetter = () => {
+    if (hasUpdate) {
+      val = _getter();
+      hasUpdate = false;
+    }
+    return val;
+  };
+
+  const valueSetter = (newVal) => {
+    if (!_setter) return;
+
+    const doUpdate = () => {
+      _setter(newVal);
+      hasUpdate = true;
+      ref.__updates.next();
+    };
+
+    if (_scheduleRefUpdates) {
+      _scheduleRefUpdates.push(doUpdate);
+    } else {
+      doUpdate();
+    }
+  };
+
+  const ref: InternalRef = Object.create(Object.create(null), {
     value: {
-      get: obj.get,
-      set: obj.set || (() => undefined),
+      get: () => {
+        addRefs(ref);
+        return valueGetter();
+      },
+      set: valueSetter,
+      configurable: false,
+    },
+    __value: {
+      get: valueGetter,
+      configurable: false,
+    },
+    __updates: {
+      value: new Subject<void>(),
+      configurable: false,
+    },
+    __ref__: {
       configurable: false,
     },
   });
+
+  return ref;
+}
+
+const proxyToKey = new Proxy(Object.create(null), {
+  get(target, key) {
+    return key;
+  },
+});
+
+export function observe<T extends object, K extends keyof T>(
+  obj: T,
+  pickFn: (prop: { [P in keyof T]: P }) => K,
+  notify?: (prop: K) => void
+) {
+  const key = pickFn(proxyToKey);
+  let valueRef: Ref<T[K]>;
+
+  const ownPropertyDescriptor = Object.getOwnPropertyDescriptor(obj, key);
+  const propertyDescriptor = getPropertyDescriptor(obj, key, ownPropertyDescriptor);
+  let isExtensible = Object.isExtensible(obj);
+
+  if (isExtensible && (!ownPropertyDescriptor || !propertyDescriptor || propertyDescriptor.configurable)) {
+    if (!propertyDescriptor || Object.prototype.hasOwnProperty.call(propertyDescriptor, 'value')) {
+      valueRef = ref(obj[key]);
+    } else {
+      valueRef = computed(() => propertyDescriptor.get.call(obj), (val) => propertyDescriptor.set.call(obj, val));
+    }
+
+    Object.defineProperty(obj, key, {
+      get() {
+        return valueRef.value;
+      },
+      set(value) {
+        valueRef.value = value;
+        notify && notify(key);
+      },
+      configurable: true,
+    });
+  } else {
+    valueRef = computed(() => obj[key]);
+    console.warn("NgxHooks: property can't be observe", 'obj:', obj, 'key:', key);
+  }
+
+  return valueRef;
+}
+
+export interface Ref<T> {
+  value: T;
 }
 
 export function ref<T>(value?: T): Ref<T> {
@@ -29,5 +139,40 @@ export function ref<T>(value?: T): Ref<T> {
 }
 
 export function isRef(ref): ref is Ref<any> {
-  return typeof ref === 'object' && 'value' in ref;
+  return ref != null && Object.prototype.hasOwnProperty.call(ref, '__ref__');
+}
+
+let refsAccumulator: Ref<any>[] = null;
+let collectRefsNotifier: () => void = null;
+
+function addRefs(ref) {
+  if (refsAccumulator) {
+    refsAccumulator.push(ref);
+    collectRefsNotifier && collectRefsNotifier();
+  }
+}
+
+export function collectRefs<T>(refs: any[], fn: () => T, notify?: () => void) {
+  collectRefsNotifier = notify;
+  refsAccumulator = refs;
+
+  const val = fn();
+
+  collectRefsNotifier = null;
+  refsAccumulator = null;
+
+  return val;
+}
+
+let _scheduleRefUpdates: (() => void)[] = null;
+export function scheduleRefsUpdates(fn: () => void, scheduler: (cb: () => void) => void = setTimeout as any) {
+  const refUpdateQue = (_scheduleRefUpdates = []);
+  const val = fn();
+  _scheduleRefUpdates = null;
+
+  scheduler(() => {
+    refUpdateQue.forEach((updateRef) => updateRef());
+  });
+
+  return val;
 }

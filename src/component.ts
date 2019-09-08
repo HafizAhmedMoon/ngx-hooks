@@ -1,62 +1,21 @@
-import {
-  AfterContentChecked,
-  AfterContentInit,
-  Component,
-  DoCheck,
-  Injector,
-  OnChanges,
-  OnDestroy,
-  OnInit,
-  SimpleChanges,
-} from '@angular/core';
-import { Subject } from 'rxjs';
-import { filter } from 'rxjs/operators';
-import { Context, getContext, withContext } from './context';
-import { isRef, Ref } from './state';
+import { Component, Injector } from '@angular/core';
+import { Context, withContext } from './context';
+import { getPropertyDescriptor } from './helpers';
+import { ComponentLifecycleContext, Lifecycle, onDestroy } from './lifecycle';
+import { InternalRef, isRef } from './state';
+import { ComponentWatchContext } from './watch';
 
-export interface ComponentContext extends Context {
-  lifecycleEvents: Subject<{ event: LifecycleKeys; arg?: any }>;
-}
+export interface ComponentContext extends ComponentWatchContext, ComponentLifecycleContext, Context {}
 
 function createContext(injector: Injector): ComponentContext {
-  return {
-    injector,
-    lifecycleEvents: new Subject(),
-  };
+  return { injector };
 }
-
-export interface Lifecycle
-  extends OnChanges,
-    OnInit,
-    DoCheck,
-    AfterContentInit,
-    AfterContentChecked,
-    AfterContentInit,
-    AfterContentChecked,
-    OnDestroy {}
-
-type LifecycleKeys = keyof Lifecycle;
-
-function lifecycle(lifecycleTypes: LifecycleKeys, fn: (...args: any[]) => void) {
-  getContext<ComponentContext>()
-    .lifecycleEvents.pipe(filter(({ event }) => event === lifecycleTypes))
-    .subscribe(({ arg }) => fn(arg), null);
-}
-
-export const onChanges = (fn: (changes: SimpleChanges) => void) => lifecycle('ngOnChanges', fn);
-export const onInit = (fn: () => void) => lifecycle('ngOnInit', fn);
-export const onDoCheck = (fn: () => void) => lifecycle('ngDoCheck', fn);
-export const onAfterContentInit = (fn: () => void) => lifecycle('ngAfterContentInit', fn);
-export const onAfterContentChecked = (fn: () => void) => lifecycle('ngAfterContentChecked', fn);
-export const onAfterViewInit = (fn: () => void) => lifecycle('ngAfterContentInit', fn);
-export const onAfterViewChecked = (fn: () => void) => lifecycle('ngAfterContentChecked', fn);
-export const onDestroy = (fn: () => void) => lifecycle('ngOnDestroy', fn);
 
 type NgHooksPropsProtected = '__context';
 
 const propsProtected: NgHooksPropsProtected[] & string[] = ['__context'];
 
-export type NgHooksProps<C extends NgHooks<any>, P = Omit<C, NgHooksPropsProtected>> = {
+export type NgHooksContext<C extends NgHooks, P = Omit<C, NgHooksPropsProtected>> = {
   [K in keyof P]: P[K];
 };
 
@@ -64,16 +23,16 @@ interface Type<T> {
   new (...args: any[]): T;
 }
 
-export interface NgHooks<T> {
+export interface NgHooks {
   [key: string]: any;
 }
 
-export abstract class FunctionComponent<T> implements NgHooks<T> {
+export abstract class FunctionComponent implements NgHooks {
   [key: string]: any;
 }
 
-interface NgHooksStatic<T> extends Type<FunctionComponent<T>> {
-  ngHooks(props: NgHooksProps<T>): { [key: string]: any };
+interface NgHooksStatic<T> extends Type<FunctionComponent> {
+  ngHooks(props: NgHooksContext<T>): { [key: string]: any };
 }
 
 const ANNOTATIONS = '__annotations__';
@@ -150,65 +109,36 @@ export function NgHooks<T>() {
       Object.defineProperty(HookHelperComponent, PROP_METADATA, { value: target[PROP_METADATA] || {} });
     }
 
+    Object.defineProperty(HookHelperComponent, 'name', { value: target.name, configurable: true });
+
     return HookHelperComponent as any;
   };
 }
 
-function setup(this: NgHooks<any>) {
-  const props = proxyProps.call(this);
-
-  const result = (this.constructor as NgHooksStatic<any>).ngHooks.call(undefined, props);
+function setup(this: NgHooks) {
+  const result = (this.constructor as NgHooksStatic<any>).ngHooks.call(undefined, this);
 
   copyResultToContext.call(this, result);
-
-  registerCleanup();
 }
 
-function registerCleanup() {
-  const context = getContext<ComponentContext>();
-
-  onDestroy(() => {
-    context.lifecycleEvents.complete();
-  });
-}
-
-function setDefaultProps(this: NgHooks<any>, instance: NgHooks<any>) {
-  Object.keys(instance).forEach((propKey) => {
-    // TODO: maybe it should only assign input/outputs/view decorated props not all class props
-    if (!propsProtected.includes(propKey)) {
-      this[propKey] = instance[propKey];
-    }
-  });
-}
-
-function proxyProps(this: NgHooks<any>) {
-  const _this = this;
-  const props: { [key: string]: any } = new Proxy(Object.create(null), {
-    get(target, propKey: string) {
-      if (!propsProtected.includes(propKey)) {
-        return _this[propKey];
-      }
-    },
-  });
-
-  return props;
-}
-
-function copyResultToContext(this: NgHooks<any>, result: Object) {
-  Object.keys(result).forEach((objKey) => {
+function copyResultToContext(this: NgHooks, result: Object) {
+  Object.getOwnPropertyNames(result).forEach((objKey) => {
     if (propsProtected.includes(objKey)) return;
 
     const resultElement = result[objKey];
     if (isRef(resultElement)) {
-      bindRefToContext(this, objKey, resultElement);
+      bindRefToContext(this, objKey, resultElement as InternalRef);
     } else {
       this[objKey] = resultElement;
     }
   });
 }
 
-function bindRefToContext(obj: Object, key: string, ref: Ref<any>) {
+function bindRefToContext<T extends object>(obj: T, key: keyof T, ref: InternalRef) {
+  const propertyDescriptor = getPropertyDescriptor(obj, key);
+
   Object.defineProperty(obj, key, {
+    configurable: true,
     get() {
       return ref.value;
     },
@@ -216,4 +146,11 @@ function bindRefToContext(obj: Object, key: string, ref: Ref<any>) {
       ref.value = val;
     },
   });
+
+  if (propertyDescriptor && !Object.prototype.hasOwnProperty.call(obj, 'value')) {
+    const subscription = ref.__updates.subscribe(() => propertyDescriptor.set(ref.__value));
+    onDestroy(() => subscription.unsubscribe());
+
+    propertyDescriptor.set(ref.__value);
+  }
 }
