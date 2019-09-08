@@ -87,10 +87,10 @@ export function NgHooks<T>() {
         this.__context.lifecycleEvents.next({ event: 'ngAfterContentChecked' });
       }
       ngAfterViewInit() {
-        this.__context.lifecycleEvents.next({ event: 'ngAfterContentInit' });
+        this.__context.lifecycleEvents.next({ event: 'ngAfterViewInit' });
       }
       ngAfterViewChecked() {
-        this.__context.lifecycleEvents.next({ event: 'ngAfterContentChecked' });
+        this.__context.lifecycleEvents.next({ event: 'ngAfterViewChecked' });
       }
       ngOnDestroy() {
         this.__context.lifecycleEvents.next({ event: 'ngOnDestroy' });

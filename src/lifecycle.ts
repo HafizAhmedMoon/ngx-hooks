@@ -1,6 +1,8 @@
 import {
   AfterContentChecked,
   AfterContentInit,
+  AfterViewChecked,
+  AfterViewInit,
   DoCheck,
   OnChanges,
   OnDestroy,
@@ -21,8 +23,8 @@ export interface Lifecycle
     DoCheck,
     AfterContentInit,
     AfterContentChecked,
-    AfterContentInit,
-    AfterContentChecked,
+    AfterViewInit,
+    AfterViewChecked,
     OnDestroy {}
 
 type LifecycleKeys = keyof Lifecycle;
@@ -44,6 +46,6 @@ export const onInit = (fn: () => void) => lifecycle('ngOnInit', fn);
 export const onDoCheck = (fn: () => void) => lifecycle('ngDoCheck', fn);
 export const onAfterContentInit = (fn: () => void) => lifecycle('ngAfterContentInit', fn);
 export const onAfterContentChecked = (fn: () => void) => lifecycle('ngAfterContentChecked', fn);
-export const onAfterViewInit = (fn: () => void) => lifecycle('ngAfterContentInit', fn);
-export const onAfterViewChecked = (fn: () => void) => lifecycle('ngAfterContentChecked', fn);
+export const onAfterViewInit = (fn: () => void) => lifecycle('ngAfterViewInit', fn);
+export const onAfterViewChecked = (fn: () => void) => lifecycle('ngAfterViewChecked', fn);
 export const onDestroy = (fn: () => void) => lifecycle('ngOnDestroy', fn);
