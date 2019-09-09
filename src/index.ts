@@ -10,5 +10,5 @@ export {
   onAfterViewInit,
   onAfterViewChecked,
 } from './lifecycle';
-export { ref, isRef, computed, observe } from './state';
+export { Ref, ref, fromRef, isRef, computed, observe } from './state';
 export { watch } from './watch';
