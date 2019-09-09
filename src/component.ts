@@ -2,7 +2,7 @@ import { Component, Injector } from '@angular/core';
 import { Context, withContext } from './context';
 import { getPropertyDescriptor } from './helpers';
 import { ComponentLifecycleContext, Lifecycle, onDestroy } from './lifecycle';
-import { InternalRef, isRef } from './state';
+import { InternalRef, isRef, Ref } from './state';
 import { ComponentWatchContext } from './watch';
 
 export interface ComponentContext extends ComponentWatchContext, ComponentLifecycleContext, Context {}
@@ -19,7 +19,7 @@ export type NgHooksContext<C extends NgHooks, P = Omit<C, NgHooksPropsProtected>
   [K in keyof P]: P[K];
 };
 export type NgHooksFunction<T, R = any> = (props: NgHooksContext<T>) => NgHooksFunctionReturn<R>;
-export type NgHooksFunctionReturn<R = any> = R & { [key: string]: any };
+export type NgHooksFunctionReturn<R = any> = { [P in keyof R]?: Ref<R[P]> | R[P] } & { [key: string]: any };
 
 interface Type<T> {
   new (...args: any[]): T;
