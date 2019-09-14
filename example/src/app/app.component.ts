@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { NgHooks, NgHooksContext, NgHooksFunctionReturn, ref } from 'ngx-hooks';
+import { FunctionComponent, NgHooksContext, NgHooksReturn, ref } from 'ngx-hooks';
 
 @Component({
   selector: 'app-root',
@@ -30,13 +30,13 @@ import { NgHooks, NgHooksContext, NgHooksFunctionReturn, ref } from 'ngx-hooks';
     </div>
   `,
 })
-@NgHooks()
+@FunctionComponent()
 export class AppComponent {
   title: string;
   titleChange: (val: string) => void;
 
   count: number;
-  static ngHooks(context: NgHooksContext<AppComponent>): NgHooksFunctionReturn<AppComponent> {
+  static ngHooks(context: NgHooksContext<AppComponent>): NgHooksReturn<AppComponent> {
     const title = ref('Angular');
     title.value = 'NgxHooks'; // update title
     function titleChange(val) {

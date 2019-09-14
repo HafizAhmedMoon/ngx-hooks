@@ -1,6 +1,6 @@
 import { Component, forwardRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { NgHooks, NgHooksContext, NgHooksFunctionReturn, ref } from 'ngx-hooks';
+import { FunctionComponent, NgHooksContext, NgHooksReturn, ref } from 'ngx-hooks';
 
 @Component({
   selector: 'app-input',
@@ -9,14 +9,12 @@ import { NgHooks, NgHooksContext, NgHooksFunctionReturn, ref } from 'ngx-hooks';
   `,
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => InputComponent), multi: true }],
 })
-@NgHooks()
+@FunctionComponent()
 export class InputComponent {
   value: string;
   onChangeValue: (val) => void;
 
-  static ngHooks(
-    context: NgHooksContext<InputComponent>
-  ): NgHooksFunctionReturn<InputComponent & ControlValueAccessor> {
+  static ngHooks(context: NgHooksContext<InputComponent>): NgHooksReturn<InputComponent & ControlValueAccessor> {
     const value = ref('');
     return {
       value,

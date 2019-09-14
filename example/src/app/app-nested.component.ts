@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { NgHooks, NgHooksContext, onDestroy, onInit, ref, watch } from 'ngx-hooks';
+import { FunctionComponent, NgHooksContext, onDestroy, onInit, ref, watch } from 'ngx-hooks';
 
 @Component({
   selector: 'app-counter',
@@ -7,7 +7,7 @@ import { NgHooks, NgHooksContext, onDestroy, onInit, ref, watch } from 'ngx-hook
     <div>counter: {{ count }}</div>
   `,
 })
-@NgHooks()
+@FunctionComponent()
 export class NestedComponent {
   @Input() count: number;
   @Output() countChange = new EventEmitter<number>();

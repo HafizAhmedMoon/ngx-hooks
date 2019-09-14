@@ -1,14 +1,10 @@
 import { Component, Input } from '@angular/core';
-import { computed, fromRef, NgHooks, NgHooksContext, NgHooksFunctionReturn, observe, ref } from 'ngx-hooks';
-import { shareStore } from './share-store';
-
-interface TodoItem {
-  text: string;
-  completed: boolean;
-}
+import { FunctionComponent, inject, NgHooksContext, NgHooksReturn, observe, ref, watch } from 'ngx-hooks';
+import { TodoItem, TodoService, TodoServiceProvider } from './todo.service';
 
 @Component({
   selector: 'app-todo',
+  providers: [TodoServiceProvider],
   styles: [
     `
       .todo {
@@ -41,6 +37,7 @@ interface TodoItem {
   ],
   template: `
     <div class="todo">
+      <test></test>
       <h2>
         Todo <span>({{ key }})</span>
       </h2>
@@ -53,7 +50,7 @@ interface TodoItem {
       />
       <div class="items">
         <div
-          [ngStyle]="{ 'text-decoration': item.completed ? 'line-through' : '' }"
+          [todoComplete]="item.completed"
           *ngFor="let item of items; let index = index"
           (click)="toggleItemComplete(index)"
         >
@@ -64,7 +61,7 @@ interface TodoItem {
     </div>
   `,
 })
-@NgHooks()
+@FunctionComponent()
 export class TodoComponent {
   @Input()
   key: string = '0';
@@ -76,58 +73,36 @@ export class TodoComponent {
   toggleItemComplete: (index: number) => void;
   removeItem: (index: number) => void;
 
-  static ngHooks(context: NgHooksContext<TodoComponent>): NgHooksFunctionReturn<TodoComponent> {
+  static ngHooks(context: NgHooksContext<TodoComponent>): NgHooksReturn<TodoComponent> {
     const input = ref('');
-    const items = ref<TodoItem[]>([]);
+    const { items, addItem, removeItem, toggleItemComplete, setPersist } = inject(TodoService);
 
     const key = observe(context, (prop) => prop.key);
-    const storeKey = computed(() => 'todo.' + key.value);
-    const { persist } = shareStore(
-      storeKey,
-      (store) => {
-        const { input: _input, items: _items } = store || { input: '', items: [] };
-        input.value = _input;
-        items.value = _items;
+    let updateStore: ReturnType<typeof setPersist>;
+    watch(
+      key,
+      (key) => {
+        updateStore = setPersist(key, ({ input: _input = '' }) => {
+          input.value = _input;
+        });
       },
-      (store) => {
-        input.value = store.input;
-        items.value = store.items;
-      }
+      { mode: 'sync' }
     );
 
-    function updateStore() {
-      persist({ ...fromRef({ input, items }) });
-    }
-
-    function inputChange(val) {
-      input.value = val;
-      updateStore();
-    }
-
-    function addItem() {
-      if (!input.value) return;
-
-      items.value = items.value.concat({ text: input.value, completed: false });
-      input.value = '';
-
-      updateStore();
-    }
-
-    function toggleItemComplete(index) {
-      const item = items.value[index];
-      items.value = Object.assign([], items.value, { [index]: { ...item, completed: !item.completed } });
-
-      updateStore();
-    }
-
-    function removeItem(index) {
-      const _items = [...items.value];
-      _items.splice(index, 1);
-      items.value = _items;
-
-      updateStore();
-    }
-
-    return { input, inputChange, items, addItem, toggleItemComplete, removeItem };
+    return {
+      input,
+      items,
+      toggleItemComplete,
+      removeItem,
+      inputChange(val) {
+        input.value = val;
+        updateStore({ input });
+      },
+      addItem() {
+        if (!input.value) return;
+        addItem(input.value);
+        input.value = '';
+      },
+    };
   }
 }
