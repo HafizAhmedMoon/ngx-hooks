@@ -1,5 +1,7 @@
-export { FunctionComponent, NgHooks, NgHooksContext, NgHooksFunction, NgHooksFunctionReturn } from './component';
-export * from './inject';
+export { FunctionClass, NgHooksContext, NgHooks, NgHooksReturn } from './common';
+export { FunctionComponent } from './component';
+export { FunctionDirective } from './directive';
+export { inject } from './inject';
 export {
   onChanges,
   onInit,
@@ -10,5 +12,6 @@ export {
   onAfterViewInit,
   onAfterViewChecked,
 } from './lifecycle';
-export { Ref, ref, fromRef, isRef, computed, observe } from './state';
+export { createProvider } from './provider';
+export { Ref, RefDict, ref, fromRef, isRef, computed, observe } from './state';
 export { watch } from './watch';

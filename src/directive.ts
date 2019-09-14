@@ -1,14 +1,14 @@
-import { Component, Injector } from '@angular/core';
+import { Directive, Injector } from '@angular/core';
 import { copyNgDef, createDirectiveContext, DirectiveContext, NgHooksStatic, directiveSetup } from './common';
 import { withContext } from './context';
 import { DirectiveLifecycle } from './lifecycle';
 
-const NG_COMPONENT_DEF = 'ngComponentDef';
+const NG_DIRECTIVE_DEF = 'ngDirectiveDef';
 
-export function FunctionComponent<T>() {
+export function FunctionDirective<T>() {
   return (source: NgHooksStatic<T>) => {
-    @Component({ template: '' })
-    class FunctionComponentHelper extends source implements DirectiveLifecycle {
+    @Directive({ selector: 'functionDirectiveHelper' })
+    class FunctionDirectiveHelper extends source implements DirectiveLifecycle {
       __context: DirectiveContext;
 
       constructor(injector: Injector) {
@@ -44,8 +44,8 @@ export function FunctionComponent<T>() {
       }
     }
 
-    copyNgDef(FunctionComponentHelper, source, NG_COMPONENT_DEF);
+    copyNgDef(FunctionDirectiveHelper, source, NG_DIRECTIVE_DEF);
 
-    return FunctionComponentHelper as any;
+    return FunctionDirectiveHelper as any;
   };
 }

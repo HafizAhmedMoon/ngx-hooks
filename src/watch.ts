@@ -1,9 +1,9 @@
 import { Context, getContext } from './context';
 import { createInternalRefsStream } from './helpers';
-import { onAfterContentChecked, onAfterViewChecked, onDestroy } from './lifecycle';
+import { isBasicLifecycleContext, onAfterContentChecked, onAfterViewChecked, onDestroy } from './lifecycle';
 import { computed, InternalRef, Ref, scheduleRefsUpdates } from './state';
 
-export interface ComponentWatchContext extends Context {
+export interface WatcherContext extends Context {
   watchAsyncQueue?: {
     content: (() => void)[];
     view: (() => void)[];
@@ -75,9 +75,10 @@ export function watch<T>(
     ...options,
   };
 
-  const context = getContext<ComponentWatchContext>();
+  const context = getContext<WatcherContext>();
 
-  if (!context.watchAsyncQueue) {
+  const basicLifecycleContext = isBasicLifecycleContext(context);
+  if (!basicLifecycleContext && !context.watchAsyncQueue) {
     context.watchAsyncQueue = {
       content: [],
       view: [],
@@ -126,7 +127,7 @@ export function watch<T>(
   };
 
   const _callback =
-    mode === 'sync'
+    mode === 'sync' || basicLifecycleContext
       ? applyCb
       : (n, o) => {
           const scheduledAlready = !!scheduled;

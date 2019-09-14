@@ -4,15 +4,15 @@ export interface Context {
   injector: Injector;
 }
 
-let currentContext: Context = null;
+let contextStack: Context[] = [];
 
 export function getContext<T extends Context>() {
-  return currentContext as T;
+  return contextStack[contextStack.length - 1] as T;
 }
 
 export function withContext<T extends Context, R>(context: T, fn: () => R) {
-  currentContext = context;
+  contextStack.push(context);
   const result = fn();
-  currentContext = null;
+  contextStack.pop();
   return result;
 }

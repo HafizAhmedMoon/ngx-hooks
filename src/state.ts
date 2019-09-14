@@ -133,7 +133,7 @@ export function observe<T extends object, K extends keyof T>(
 export interface Ref<T> {
   value: T;
 }
-type RefWrap<T> = { [K in keyof T]: Ref<T[K]> | T[K] };
+export type RefDict<T = {}> = { [K in keyof T]: Ref<T[K]> | T[K] };
 
 export function ref<T>(value?: T): Ref<T> {
   return computed({ get: () => value, set: (val: T) => (value = val) });
@@ -143,9 +143,9 @@ export function isRef(ref): ref is Ref<any> {
   return ref != null && Object.prototype.hasOwnProperty.call(ref, '__ref__');
 }
 
-export function fromRef<R extends Ref<any> | RefWrap<any>>(
+export function fromRef<R extends Ref<any> | RefDict<any>>(
   ref: R
-): R extends Ref<infer V> ? V : R extends RefWrap<infer V> ? V : never {
+): R extends Ref<infer V> ? V : R extends RefDict<infer V> ? V : never {
   if (isRef(ref)) {
     return ref.value;
   }

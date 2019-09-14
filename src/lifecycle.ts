@@ -10,14 +10,21 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { Subject } from 'rxjs';
-import { filter, tap } from 'rxjs/operators';
+import { filter } from 'rxjs/operators';
 import { Context, getContext } from './context';
 
-export interface ComponentLifecycleContext extends Context {
-  lifecycleEvents?: Subject<{ event: LifecycleKeys; arg?: any }>;
+export interface BasicLifecycleContext extends Context {
+  lifecycleEvents: Subject<{ event: BaseLifecycleKeys }>;
+  __basicLifecycle: 1;
 }
 
-export interface Lifecycle
+export interface DirectiveLifecycleContext extends Context {
+  lifecycleEvents: Subject<{ event: DirectiveLifecycleKeys; arg?: any }>;
+}
+
+export interface BaseLifecycle extends OnDestroy {}
+
+export interface DirectiveLifecycle
   extends OnChanges,
     OnInit,
     DoCheck,
@@ -25,20 +32,23 @@ export interface Lifecycle
     AfterContentChecked,
     AfterViewInit,
     AfterViewChecked,
-    OnDestroy {}
+    BaseLifecycle {}
 
-type LifecycleKeys = keyof Lifecycle;
+type BaseLifecycleKeys = keyof BaseLifecycle;
+type DirectiveLifecycleKeys = keyof DirectiveLifecycle;
 
-function lifecycle(lifecycleTypes: LifecycleKeys, fn: (...args: any[]) => void) {
-  const context = getContext<ComponentLifecycleContext>();
-  if (!context.lifecycleEvents) {
-    context.lifecycleEvents = new Subject();
+function lifecycle(lifecycleTypes: DirectiveLifecycleKeys, fn: (...args: any[]) => void) {
+  const context = getContext<DirectiveLifecycleContext>();
 
-    onDestroy(() => {
-      context.lifecycleEvents.complete();
-    });
+  if (isBasicLifecycleContext(context) && lifecycleTypes !== 'ngOnDestroy') {
+    return;
   }
+
   context.lifecycleEvents.pipe(filter(({ event }) => event === lifecycleTypes)).subscribe(({ arg }) => fn(arg), null);
+}
+
+export function isBasicLifecycleContext(context: Context) {
+  return Object.prototype.hasOwnProperty.call(context, '__basicLifecycle');
 }
 
 export const onChanges = (fn: (changes: SimpleChanges) => void) => lifecycle('ngOnChanges', fn);
@@ -49,3 +59,10 @@ export const onAfterContentChecked = (fn: () => void) => lifecycle('ngAfterConte
 export const onAfterViewInit = (fn: () => void) => lifecycle('ngAfterViewInit', fn);
 export const onAfterViewChecked = (fn: () => void) => lifecycle('ngAfterViewChecked', fn);
 export const onDestroy = (fn: () => void) => lifecycle('ngOnDestroy', fn);
+
+export function registerLifecycleCleanup() {
+  const context = getContext<BasicLifecycleContext>();
+  onDestroy(() => {
+    context.lifecycleEvents.complete();
+  });
+}
