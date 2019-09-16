@@ -1,5 +1,5 @@
 import { Subject } from 'rxjs';
-import { createInternalRefsStream, getPropertyDescriptor } from './helpers';
+import { createInternalRefsStream, createPropMap, getPropertyDescriptor } from './helpers';
 import { onDestroy } from './lifecycle';
 
 export interface InternalRef<T = any> extends Ref<T> {
@@ -87,18 +87,12 @@ export function computed<T>(fnOrObj: Getter<T> | GetterSetter<T>, setter?: Sette
   return ref;
 }
 
-const proxyToKey = new Proxy(Object.create(null), {
-  get(target, key) {
-    return key;
-  },
-});
-
 export function observe<T extends object, K extends keyof T>(
   obj: T,
   pickFn: (prop: { [P in keyof T]: P }) => K,
   notify?: (prop: K) => void
 ) {
-  const key = pickFn(proxyToKey);
+  const key = pickFn(createPropMap(obj));
   let valueRef: Ref<T[K]>;
 
   const ownPropertyDescriptor = Object.getOwnPropertyDescriptor(obj, key);
