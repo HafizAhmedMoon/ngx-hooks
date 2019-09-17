@@ -129,7 +129,7 @@ export interface Ref<T> {
 }
 export type RefDict<T = {}> = { [K in keyof T]: Ref<T[K]> | T[K] };
 
-export function ref<T>(value?: T): Ref<T> {
+export function ref<T = any>(value?: T): Ref<T> {
   return computed({ get: () => value, set: (val: T) => (value = val) });
 }
 
