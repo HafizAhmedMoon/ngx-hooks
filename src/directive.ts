@@ -1,11 +1,19 @@
 import { Directive, Injector } from '@angular/core';
-import { copyNgDef, createDirectiveContext, DirectiveContext, NgHooksStatic, directiveSetup } from './common';
+import {
+  copyNgDef,
+  createDirectiveContext,
+  DirectiveContext,
+  directiveSetup,
+  extendLifecycle,
+  NgHooksStatic,
+  Options,
+} from './common';
 import { withContext } from './context';
 import { DirectiveLifecycle } from './lifecycle';
 
 const NG_DIRECTIVE_DEF = 'ngDirectiveDef';
 
-export function FunctionDirective<T>() {
+export function FunctionDirective<T>(options?: Options) {
   return (source: NgHooksStatic<T>) => {
     @Directive({ selector: 'functionDirectiveHelper' })
     class FunctionDirectiveHelper extends source implements DirectiveLifecycle {
@@ -18,8 +26,8 @@ export function FunctionDirective<T>() {
         withContext(context, () => directiveSetup.call(this, source));
       }
 
-      ngOnChanges(changes) {
-        this.__context.lifecycleEvents.next({ event: 'ngOnChanges', arg: changes });
+      ngOnChanges(...args) {
+        this.__context.lifecycleEvents.next({ event: 'ngOnChanges', args });
       }
       ngOnInit() {
         this.__context.lifecycleEvents.next({ event: 'ngOnInit' });
@@ -43,6 +51,8 @@ export function FunctionDirective<T>() {
         this.__context.lifecycleEvents.next({ event: 'ngOnDestroy' });
       }
     }
+
+    extendLifecycle(FunctionDirectiveHelper, options);
 
     copyNgDef(FunctionDirectiveHelper, source, NG_DIRECTIVE_DEF);
 

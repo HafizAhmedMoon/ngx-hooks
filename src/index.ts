@@ -3,6 +3,7 @@ export { FunctionComponent } from './component';
 export { FunctionDirective } from './directive';
 export { inject } from './inject';
 export {
+  composeLifecycle,
   onChanges,
   onInit,
   onDestroy,

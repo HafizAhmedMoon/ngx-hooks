@@ -19,7 +19,7 @@ export interface BasicLifecycleContext extends Context {
 }
 
 export interface DirectiveLifecycleContext extends Context {
-  lifecycleEvents: Subject<{ event: DirectiveLifecycleKeys; arg?: any }>;
+  lifecycleEvents: Subject<{ event: DirectiveLifecycleKeys; args?: any }>;
 }
 
 export interface BaseLifecycle extends OnDestroy {}
@@ -37,28 +37,44 @@ export interface DirectiveLifecycle
 type BaseLifecycleKeys = keyof BaseLifecycle;
 type DirectiveLifecycleKeys = keyof DirectiveLifecycle;
 
-function lifecycle(lifecycleTypes: DirectiveLifecycleKeys, fn: (...args: any[]) => void) {
+function lifecycle(lifecycleTypes: DirectiveLifecycleKeys | string, fn: (...args: any[]) => void) {
   const context = getContext<DirectiveLifecycleContext>();
 
   if (isBasicLifecycleContext(context) && lifecycleTypes !== 'ngOnDestroy') {
     return;
   }
 
-  context.lifecycleEvents.pipe(filter(({ event }) => event === lifecycleTypes)).subscribe(({ arg }) => fn(arg), null);
+  context.lifecycleEvents
+    .pipe(filter(({ event }) => event === lifecycleTypes))
+    .subscribe(({ args }) => fn.apply(undefined, args), null);
 }
 
 export function isBasicLifecycleContext(context: Context) {
   return Object.prototype.hasOwnProperty.call(context, '__basicLifecycle');
 }
 
-export const onChanges = (fn: (changes: SimpleChanges) => void) => lifecycle('ngOnChanges', fn);
-export const onInit = (fn: () => void) => lifecycle('ngOnInit', fn);
-export const onDoCheck = (fn: () => void) => lifecycle('ngDoCheck', fn);
-export const onAfterContentInit = (fn: () => void) => lifecycle('ngAfterContentInit', fn);
-export const onAfterContentChecked = (fn: () => void) => lifecycle('ngAfterContentChecked', fn);
-export const onAfterViewInit = (fn: () => void) => lifecycle('ngAfterViewInit', fn);
-export const onAfterViewChecked = (fn: () => void) => lifecycle('ngAfterViewChecked', fn);
-export const onDestroy = (fn: () => void) => lifecycle('ngOnDestroy', fn);
+export interface ComposedLifecycle<F> extends Function {
+  (fn: F): void;
+  lifecycle: string;
+}
+
+export function composeLifecycle<F extends (...args: any[]) => void = (...args: any[]) => void>(
+  name: string
+): ComposedLifecycle<F> {
+  const fn = (fn: F) => lifecycle(name, fn);
+  const nameDescriptor = { value: name, writable: false, configurable: true };
+  Object.defineProperties(fn, { name: nameDescriptor, lifecycle: nameDescriptor });
+  return fn as any;
+}
+
+export const onChanges = composeLifecycle<(changes: SimpleChanges) => void>('ngOnChanges');
+export const onInit = composeLifecycle<() => void>('ngOnInit');
+export const onDoCheck = composeLifecycle<() => void>('ngDoCheck');
+export const onAfterContentInit = composeLifecycle<() => void>('ngAfterContentInit');
+export const onAfterContentChecked = composeLifecycle<() => void>('ngAfterContentChecked');
+export const onAfterViewInit = composeLifecycle<() => void>('ngAfterViewInit');
+export const onAfterViewChecked = composeLifecycle<() => void>('ngAfterViewChecked');
+export const onDestroy = composeLifecycle<() => void>('ngOnDestroy');
 
 export function registerLifecycleCleanup() {
   const context = getContext<BasicLifecycleContext>();

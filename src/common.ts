@@ -2,9 +2,13 @@ import { Injector } from '@angular/core';
 import { Subject } from 'rxjs';
 import { Context } from './context';
 import { getPropertyDescriptor } from './helpers';
-import { DirectiveLifecycleContext, onDestroy, registerLifecycleCleanup } from './lifecycle';
+import { ComposedLifecycle, DirectiveLifecycleContext, onDestroy, registerLifecycleCleanup } from './lifecycle';
 import { InternalRef, isRef, Ref } from './state';
 import { WatcherContext } from './watch';
+
+export interface Options {
+  lifecycle?: ComposedLifecycle<any>[];
+}
 
 export interface DirectiveContext extends WatcherContext, DirectiveLifecycleContext, Context {}
 
@@ -33,7 +37,7 @@ export interface NgHooksStatic<T> extends Type<FunctionClass> {
 }
 
 export type NgHooksContext<C extends NgHooksClass, P = Omit<C, NgHooksProtectedProp>> = {
-  [K in keyof P]: P[K];
+  readonly [K in keyof P]: P[K];
 };
 
 export type NgHooks<T, R = any> = (props: NgHooksContext<T>) => void | NgHooksReturn<R>;
@@ -56,6 +60,20 @@ const NgDefProps_DoNotCopy = [
   'onDestroy',
   'setInput',
 ];
+
+export function extendLifecycle(target: NgHooksStatic<any>, options?: Options) {
+  if (!options || typeof options !== 'object' || !Array.isArray(options.lifecycle)) return;
+
+  const lifecycleMap = options.lifecycle.reduce((map, lifecycle) => {
+    const name = lifecycle.lifecycle || lifecycle.name;
+    map[lifecycle.lifecycle || lifecycle.name] = function(...args) {
+      const context = this.__context as DirectiveContext;
+      context.lifecycleEvents.next({ event: name as any, args });
+    };
+    return map;
+  }, {});
+  Object.assign(target.prototype, lifecycleMap);
+}
 
 export function copyNgDef(target, source, NG_DEF) {
   // for Ivy render
