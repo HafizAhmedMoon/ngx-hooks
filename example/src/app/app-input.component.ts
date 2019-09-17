@@ -1,6 +1,10 @@
 import { Component, forwardRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { FunctionComponent, NgHooksContext, NgHooksReturn, ref } from 'ngx-hooks';
+import { FunctionComponent, NgHooksContext, NgHooksReturn, ref, composeLifecycle } from 'ngx-hooks';
+
+const { OnWriteValue, OnRegisterOnChange, OnRegisterOnTouched, OnSetDisabledState } = createControlValueAccessor<
+  string
+>();
 
 @Component({
   selector: 'app-input',
@@ -9,28 +13,37 @@ import { FunctionComponent, NgHooksContext, NgHooksReturn, ref } from 'ngx-hooks
   `,
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => InputComponent), multi: true }],
 })
-@FunctionComponent()
+@FunctionComponent({ lifecycle: [OnWriteValue, OnRegisterOnChange, OnRegisterOnTouched, OnSetDisabledState] })
 export class InputComponent {
   value: string;
   onChangeValue: (val) => void;
 
   static ngHooks(context: NgHooksContext<InputComponent>): NgHooksReturn<InputComponent & ControlValueAccessor> {
-    const value = ref('');
+    const { value, onChangeValue } = valueController();
     return {
       value,
-      ...useControlValueAccessor<string>((val) => (value.value = val), (fn) => (context.onChangeValue = fn)),
+      onChangeValue,
     };
   }
 }
 
-function useControlValueAccessor<T>(
-  writeValue = (val: T) => {},
-  registerOnChange = (fn: (val: T) => void) => {},
-  registerOnTouched = (fn: () => void) => {}
-) {
+function valueController() {
+  const value = ref('');
+  const onChangeValue = ref();
+  OnWriteValue((_val) => {
+    value.value = _val;
+  });
+  OnRegisterOnChange((fn) => {
+    onChangeValue.value = fn;
+  });
+  return { value, onChangeValue };
+}
+
+function createControlValueAccessor<T>() {
   return {
-    writeValue,
-    registerOnChange,
-    registerOnTouched,
+    OnWriteValue: composeLifecycle<(value: T) => void>('writeValue'),
+    OnRegisterOnChange: composeLifecycle<(fn: (value: T) => void) => void>('registerOnChange'),
+    OnRegisterOnTouched: composeLifecycle<() => void>('registerOnTouched'),
+    OnSetDisabledState: composeLifecycle<(isDisabled: boolean) => void>('setDisabledState'),
   };
 }
