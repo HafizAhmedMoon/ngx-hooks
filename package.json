@@ -2,6 +2,22 @@
   "name": "ngx-hooks",
   "version": "0.0.0-PLACEHOLDER",
   "description": "Function api for Angular",
+  "author": "Ahmed Raza <hafizahmedmoon@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/hafizahmedmoon/ngx-hooks#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hafizahmedmoon/ngx-hooks.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hafizahmedmoon/ngx-hooks/issues"
+  },
+  "keywords": [
+    "Angular Hooks",
+    "Angular",
+    "Hooks",
+    "Function Api"
+  ],
   "main": "src/index.ts",
   "module": "src/index.ts",
   "typings": "typings/index.d.ts",
@@ -15,22 +31,6 @@
     "test": "echo \"TODO: no test specified\"",
     "prettier-all": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md,yml,yaml}\""
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/hafizahmedmoon/ngx-hooks.git"
-  },
-  "keywords": [
-    "Angular Hooks",
-    "Angular",
-    "Hooks",
-    "Function Api"
-  ],
-  "author": "Ahmed Raza <hafizahmedmoon@gmail.com>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/hafizahmedmoon/ngx-hooks/issues"
-  },
-  "homepage": "https://github.com/hafizahmedmoon/ngx-hooks#readme",
   "devDependencies": {
     "@angular/core": "^8.2.2",
     "prettier": "^1.18.2",
