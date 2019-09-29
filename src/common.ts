@@ -85,7 +85,16 @@ export function copyNgDef(target, source, NG_DEF) {
       destComponentDef[key] = targetComponentDef[key];
     });
   } else {
-    throw new Error('ngx-hooks: Angular Ivy is not enabled.');
+    const error = new Error('ngx-hooks: Angular Ivy is not enabled.');
+    if (source[ANNOTATIONS]) {
+      console.error(error);
+    } else {
+      throw error;
+    }
+
+    Object.defineProperty(target, ANNOTATIONS, { value: source[ANNOTATIONS] || [] });
+    Object.defineProperty(target, PARAMETERS, { value: source[PARAMETERS] || [] });
+    Object.defineProperty(target, PROP_METADATA, { value: source[PROP_METADATA] || {} });
   }
 
   Object.defineProperty(target, 'name', { value: source.name, configurable: true });
