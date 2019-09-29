@@ -46,13 +46,27 @@
 
 ## Installation
 
-This library is distributed via [npm] which is bundled with [node]:
+This library is distributed via [npm] registry:
 
 ```
 npm install --save ngx-hooks
 ```
 
 This library has `@angular/core` and `rxjs` as `peerDependencies`.
+
+### Typescript Configuration
+
+This package contains _uncompiled_ typescript (.ts) files, you need to configure it manually.
+
+To enable typescript compilation of this package along with your angular project, you need to configure source files in `tsconfig.json` like:
+
+```json5
+{
+  // ...
+  include: ['./node_modules/ngx-hooks/**/*.ts'],
+  // ...
+}
+```
 
 ## Component
 
