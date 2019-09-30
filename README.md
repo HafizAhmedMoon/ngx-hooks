@@ -8,7 +8,7 @@
 
 :warning: **WARNING:** _It only works with Angular version >=8.x.x with Ivy render enabled (doesn't work with aot build of old compiler)._
 
-<hr/>
+---
 
 [![version][version-badge]][package]
 [![MIT License][license-badge]][license]
