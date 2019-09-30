@@ -15,12 +15,11 @@ export function getPropertyDescriptor<T>(
   return propertyDescriptor ? propertyDescriptor : getPropertyDescriptor(Object.getPrototypeOf(obj), prop);
 }
 
-export function createPropMap<T extends object>(obj: T) {
-  return Object.getOwnPropertyNames(obj).reduce(
-    (map, prop) => {
-      map[prop] = prop;
-      return map;
-    },
-    {} as { [P in keyof T]: P }
-  );
+const proxyPropMap = new Proxy(Object.create(null), {
+  get(target, key) {
+    return key;
+  },
+});
+export function createPropMap<T extends object>(): { [P in keyof T]: P } {
+  return proxyPropMap;
 }
