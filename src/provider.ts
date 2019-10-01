@@ -11,7 +11,7 @@ import { Subject } from 'rxjs';
 import { Context, withContext } from './context';
 import { BaseLifecycle, BasicLifecycleContext, registerLifecycleCleanup } from './lifecycle';
 
-type Factory<T> = () => T;
+type Factory<T extends object> = () => T;
 
 interface ProviderContext extends BasicLifecycleContext, Context {}
 
@@ -25,12 +25,12 @@ type ProviderReturn<N extends string, T> = [InjectionToken<T>, ClassProvider] & 
   provider: ClassProvider;
 };
 
-export function createProvider<N extends string, T>(
+export function createProvider<N extends string, T extends object>(
   name: N,
   { providedIn, factory }: { providedIn?: Type<any> | 'root'; factory: Factory<T> }
 ): ProviderReturn<N, T>;
-export function createProvider<N extends string, T>(name: N, factory: Factory<T>): ProviderReturn<N, T>;
-export function createProvider<N extends string, T>(
+export function createProvider<N extends string, T extends object>(name: N, factory: Factory<T>): ProviderReturn<N, T>;
+export function createProvider<N extends string, T extends object>(
   name: N,
   factoryOrOptions: { providedIn?: Type<any> | 'root'; factory: Factory<T> } | Factory<T>
 ): ProviderReturn<N, T> {
@@ -51,9 +51,12 @@ export function createProvider<N extends string, T>(
       const context = (this.__context = createContext(injector));
       withContext(context, () => {
         const result = factory();
-        Object.getOwnPropertyNames(result).forEach((propKey) => {
-          this[propKey] = result[propKey];
-        });
+        if (result == null) {
+          Object.getOwnPropertyNames(result).forEach((propKey) => {
+            this[propKey] = result[propKey];
+          });
+        }
+
         registerLifecycleCleanup();
       });
     }
