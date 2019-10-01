@@ -4,7 +4,7 @@ node_js:
 script:
   - 'yarn test'
   - 'echo "$(sed -e "s/0.0.0-PLACEHOLDER/$TRAVIS_TAG/g" package.json)" > package.json'
-  - 'yarn build'
+  - 'yarn typings'
 before_deploy:
   - 'echo "Publishing to npm, version $TRAVIS_TAG"'
 deploy:
@@ -15,7 +15,7 @@ deploy:
     tag: next
     on:
       tags: true
-      condition: $TRAVIS_TAG =~ ^[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+$
+      condition: $TRAVIS_TAG =~ ^[0-9]+.[0-9]+.[0-9]+-next.[0-9]+$
   - provider: npm
     email: '$NPM_EMAIL'
     api_key: '$NPM_TOKEN'

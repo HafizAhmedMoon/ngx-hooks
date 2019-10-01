@@ -2,22 +2,15 @@
   "name": "ngx-hooks",
   "version": "0.0.0-PLACEHOLDER",
   "description": "Function api for Angular",
-  "main": "dist/index.common.js",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "clean": "rimraf dist .rpt2_cache",
-    "bundle": "rollup --config",
-    "build": "npm run clean && npm run bundle",
-    "test": "echo \"TODO: no test specified\"",
-    "prettier-all": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md,yml,yaml}\""
-  },
+  "author": "Ahmed Raza <hafizahmedmoon@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/hafizahmedmoon/ngx-hooks#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hafizahmedmoon/ngx-hooks.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hafizahmedmoon/ngx-hooks/issues"
   },
   "keywords": [
     "Angular Hooks",
@@ -25,27 +18,30 @@
     "Hooks",
     "Function Api"
   ],
-  "author": "Ahmed Raza <hafizahmedmoon@gmail.com>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/hafizahmedmoon/ngx-hooks/issues"
-  },
-  "homepage": "https://github.com/hafizahmedmoon/ngx-hooks#readme",
-  "dependencies": {
-    "@angular/core": "^8.2.2",
-    "rxjs": "^6.5.2"
+  "main": "src/index.ts",
+  "module": "src/index.ts",
+  "typings": "typings/index.d.ts",
+  "files": [
+    "src",
+    "typings"
+  ],
+  "scripts": {
+    "pretypings": "rimraf typings",
+    "typings": "tsc --project tsconfig.declaration.json",
+    "test": "echo \"TODO: no test specified\"",
+    "prettier-all": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md,yml,yaml}\""
   },
   "devDependencies": {
+    "@angular/core": "^8.2.2",
     "prettier": "^1.18.2",
     "rimraf": "^3.0.0",
-    "rollup": "^1.19.4",
-    "rollup-plugin-typescript2": "^0.22.1",
+    "rxjs": "^6.5.2",
     "tslint": "^5.18.0",
     "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.5.3"
   },
   "peerDependencies": {
-    "@angular/core": ">=5.0.0",
+    "@angular/core": ">=8.0.0",
     "rxjs": ">=6.0.0"
   },
   "publishConfig": {

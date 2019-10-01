@@ -3,6 +3,7 @@
 # compiled output
 /.rpt2_cache
 /dist
+/typings
 
 # dependencies
 /node_modules

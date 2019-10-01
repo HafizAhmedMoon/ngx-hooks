@@ -8,7 +8,7 @@
 
 :warning: **WARNING:** _It only works with Angular version >=8.x.x with Ivy render enabled (doesn't work with aot build of old compiler)._
 
-<hr/>
+---
 
 [![version][version-badge]][package]
 [![MIT License][license-badge]][license]
@@ -46,13 +46,27 @@
 
 ## Installation
 
-This library is distributed via [npm] which is bundled with [node]:
+This library is distributed via [npm] registry:
 
 ```
 npm install --save ngx-hooks
 ```
 
 This library has `@angular/core` and `rxjs` as `peerDependencies`.
+
+### Typescript Configuration
+
+This package contains _uncompiled_ typescript (.ts) files, you need to configure it manually.
+
+To enable typescript compilation of this package along with your angular project, you need to configure source files in `tsconfig.json` like:
+
+```json5
+{
+  // ...
+  include: ['./node_modules/ngx-hooks/**/*.ts'],
+  // ...
+}
+```
 
 ## Component
 
