@@ -51,7 +51,7 @@ export function createProvider<N extends string, T extends object>(
       const context = (this.__context = createContext(injector));
       withContext(context, () => {
         const result = factory();
-        if (result == null) {
+        if (result != null) {
           Object.getOwnPropertyNames(result).forEach((propKey) => {
             this[propKey] = result[propKey];
           });
