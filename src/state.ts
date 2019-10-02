@@ -92,7 +92,7 @@ export function observe<T extends object, K extends keyof T>(
   pickFn: (prop: { [P in keyof T]: P }) => K,
   notify?: (prop: K) => void
 ) {
-  const key = pickFn(createPropMap(obj));
+  const key = pickFn(createPropMap<typeof obj>());
   let valueRef: Ref<T[K]>;
 
   const ownPropertyDescriptor = Object.getOwnPropertyDescriptor(obj, key);
@@ -118,7 +118,7 @@ export function observe<T extends object, K extends keyof T>(
     });
   } else {
     valueRef = computed(() => obj[key]);
-    console.warn("NgxHooks: property can't be observe", 'obj:', obj, 'key:', key);
+    console.warn("ngx-hooks: property can't be observe", 'obj:', obj, 'key:', key);
   }
 
   return valueRef;

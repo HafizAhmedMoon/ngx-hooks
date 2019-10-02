@@ -37,7 +37,6 @@ import { TodoItem, TodoService, TodoServiceProvider } from './todo.service';
   ],
   template: `
     <div class="todo">
-      <test></test>
       <h2>
         Todo <span>({{ key }})</span>
       </h2>
