@@ -17,8 +17,9 @@
 
 - [Why Function APIs?](#why-function-apis)
 - [Installation](#installation)
-- [Component](#component)
-- [Directive](#directive)
+- [Usage](#usage)
+  - [Component](#component)
+  - [Directive](#directive)
 - [Lifecycle](#lifecycle)
 - [ref](#ref)
 - [computed](#computed)
@@ -39,8 +40,8 @@
 
 ## Why Function APIs?
 
-- Declarative way to write Angular Components, Directives and Services
-- Reuse same functions between different components
+- More declarative way to write Angular Components, Directives and Services
+- Reuse same functions between different components/directives so no need to create services to splitting out methods to reduce component file or making it reusable.
 - Easy to split up functionality into functions of large component without creating unnecessarily more components.
 - Encourages to write implementation detail free tests
 
@@ -68,7 +69,9 @@ To enable typescript compilation of this package along with your angular project
 }
 ```
 
-## Component
+## Usage
+
+### Component
 
 Simple usage of function component
 
@@ -92,7 +95,7 @@ class AppComponent {
 }
 ```
 
-## Directive
+### Directive
 
 Simple usage of a function directive which highlights a text with yellow color
 
@@ -115,7 +118,7 @@ class HighlightDirective {
 
 ## Lifecycle
 
-Lifecycle can be used in Function component/directives and Provider or any composed function.
+Lifecycle can be used in Function component/directives and Provider or any composed function. _It must be used in `ngHooks` function body or custom compose function body, can't be used in nested callback_
 
 ```typescript
 import { onDestroy, ref } from 'ngx-hooks';
@@ -172,7 +175,7 @@ class AppComponent {
 
 ## `computed`
 
-`computed` takes a getter function in first argument and returns a reactive value based on computed value of different reactive value
+`computed` takes a getter function in first argument and returns a _computed_ reactive value based on a getter function.
 
 ```typescript
 import { computed, ref } from 'ngx-hooks';
@@ -208,11 +211,11 @@ class AppComponent {
 }
 ```
 
-Note: assign computed value will not have any effect if setter is not provided
+Note: assigning to a computed value will not have any effect if setter is not provided
 
 ## `observe`
 
-`observe` returns a reactive value by observing a property of different object
+`observe` returns a reactive value by observing a property of any object.
 
 ```typescript
 import { observe, computed } from 'ngx-hooks';
@@ -229,7 +232,7 @@ class AppComponent {
 
 ## `watch`
 
-It runs a watcher function when ever dependency/dependencies changes.
+It runs a watcher function when ever dependency or dependencies change. Dependency can be a reactive value or a getter function.
 
 ```typescript
 import { watch, observe, ref } from 'ngx-hooks';
@@ -274,13 +277,23 @@ class AppComponent {
 }
 ```
 
-- **Watcher source**
+### Options
 
-  source can be a `ref` value or a getter function.
+`watch` takes `options` object _(optional)_ in last function parameter.
+
+```typescript
+watch(
+  id,
+  () => {
+    // call immediately when id changes and will not call immediately
+  },
+  { mode: 'sync', lazy: true }
+);
+```
 
 - **Watch mode:**
 
-  By default, it flushes after content checked. this behaviour can be change to via `mode` in `options`.
+  By default, it flushes after content checked. this behaviour can be changed via `mode` option.
 
   - `sync`: flushes synchronously
   - `content`: flushes after content checked _(default)_
@@ -290,11 +303,11 @@ class AppComponent {
 
   When lazy is `true`, watcher function will not run immediately. _(default is `false`)_
 
-Note: `watch` fallbacks to `sync` mode if it is used in Provider.
+Note: `watch` fallbacks to `sync` mode if it is used in [`createProvider`](#createprovider).
 
 ## `inject`
 
-`inject` is same as Angular's `Injector.get`.
+`inject` is same as Angular's [`Injector.get`](https://angular.io/api/core/Injector#get).
 
 ```typescript
 import { inject } from 'ngx-hooks';
@@ -303,14 +316,14 @@ class AppComponent {
   static ngHooks(context: NgHooksContext<AppComponent>) {
     const store = inject(Store);
 
-    // do anything with store ...
+    // do anything with store
   }
 }
 ```
 
 ## `createProvider`
 
-`createProvider` creates provider which can be provided in components, directives, etc.
+`createProvider` creates provider which can be injected in components, directives or providers. the return value must be an object.
 
 ```typescript
 import { createProvider, inject } from 'ngx-hooks';
@@ -361,7 +374,7 @@ class AppComponent {
   });
   ```
 
-Note: In provider, the only `OnDestroy` lifecycle can be used other lifecycle will be ignores.
+Note: In provider, only `onDestroy` lifecycle can be used other lifecycle will have no effects.
 
 ## Helpers
 
@@ -372,17 +385,17 @@ Note: In provider, the only `OnDestroy` lifecycle can be used other lifecycle wi
   ```typescript
   import { composeLifecycle } from 'ngx-hooks';
 
-  const OnWriteValue = composeLifecycle<(value: string) => void>('writeValue');
+  const onWriteValue = composeLifecycle<(value: string) => void>('writeValue');
 
   @Component({
     // ...
   })
   @FunctionComponent({
-    lifecycle: [OnWriteValue],
+    lifecycle: [onWriteValue],
   })
   class AppComponent {
     static ngHooks(context: NgHooksContext<AppComponent>) {
-      OnWriteValue((value) => {
+      onWriteValue((value) => {
         // do something with value
       });
     }
